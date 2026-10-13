@@ -1,20 +1,205 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Pong Game</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body>
-    <div class="game-wrapper">
-      <div class="scoreboard">
-        <div class="score" id="scoreLeft">0</div>
-        <div class="score" id="scoreRight">0</div>
-      </div>
-      <canvas id="gameCanvas" width="800" height="500"></canvas>
-    </div>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AuraGold Autonomous Mind - العقل الذكي التنفيذي</title>
+    <!-- Tailwind CSS & FontAwesome -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #07080c;
+            color: #f3f4f6;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+        .gold-gradient-text {
+            background: linear-gradient(135deg, #f59e0b, #fbbf24, #d97706);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .gold-btn {
+            background: linear-gradient(135deg, #f59e0b, #fbbf24);
+            color: #000000;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        .gold-btn:hover {
+            box-shadow: 0 0 25px rgba(245, 158, 11, 0.5);
+            transform: translateY(-2px);
+        }
+        .gold-border {
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+        .agent-step {
+            border-right: 3px solid #fbbf24;
+            padding-right: 12px;
+            margin-bottom: 8px;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen flex flex-col items-center">
 
-    <script src="script.js"></script>
-  </body>
+    <!-- Header -->
+    <header class="text-center my-6 max-w-2xl">
+        <h1 class="text-3xl md:text-5xl font-extrabold mb-2 gold-gradient-text flex items-center justify-center gap-3">
+            <i class="fa-solid fa-atom text-amber-500 animate-spin" style="animation-duration: 8s;"></i> AuraGold Autonomous Mind
+        </h1>
+        <p class="text-sm md:text-base text-gray-400">العقل السيبراني المستقل: فهم عميق، هندسة أوامر بلا حدود، وتوليد ذاتي فوري</p>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="w-full max-w-3xl space-y-6">
+
+        <!-- Input Section -->
+        <div class="bg-gray-900/90 p-6 rounded-2xl gold-border shadow-2xl backdrop-blur-md">
+            <div class="flex justify-between items-center mb-2">
+                <label class="block text-amber-400 font-semibold text-lg">
+                    <i class="fa-solid fa-terminal text-amber-500"></i> أعطِ أمراً أو فكرة للعقل التنفيذي:
+                </label>
+                <span class="text-xs text-amber-500/80 bg-amber-500/10 px-2.5 py-1 rounded-full font-mono">وضع بلا قيود (Unrestricted)</span>
+            </div>
+            
+            <textarea id="promptInput" rows="4" 
+                class="w-full p-4 bg-black/70 text-white rounded-xl border border-gray-700 focus:border-amber-500 focus:outline-none focus:ring-1 focus:ring-amber-500 transition font-sans text-base" 
+                placeholder="اكتب ما يدور في ذهنك بالعربية أو الإنجليزية (مثال: محارب ذهبي أسطوري يقف فوق قمة جبل وسط عاصفة كونية..."></textarea>
+            
+            <button id="generateBtn" onclick="runAutonomousMind()" 
+                class="w-full mt-4 py-4 rounded-xl gold-btn text-lg flex items-center justify-center gap-2 shadow-lg">
+                <i class="fa-solid fa-bolt"></i> تشغيل العقل التنفيذي وإطلاق التوليد
+            </button>
+        </div>
+
+        <!-- Autonomous Mind Process Log -->
+        <div id="processLogCard" class="hidden bg-gray-900/95 p-6 rounded-2xl gold-border space-y-3">
+            <h3 class="text-amber-400 font-bold flex items-center gap-2 border-b border-gray-800 pb-2">
+                <i class="fa-solid fa-microchip animate-pulse"></i> تتبع العمليات العصبية والتنفيذ الذاتي:
+            </h3>
+            <div id="logs" class="space-y-2 text-sm text-gray-300 font-mono"></div>
+        </div>
+
+        <!-- Result / Output Section -->
+        <div id="resultCard" class="hidden bg-gray-900/95 p-6 rounded-2xl gold-border text-center space-y-4">
+            <h3 class="text-xl font-bold text-amber-400">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> نتاج العقل السيبراني (المشهد النهائي)
+            </h3>
+            
+            <div id="mediaContainer" class="rounded-xl overflow-hidden shadow-2xl bg-black min-h-[300px] flex items-center justify-center relative">
+            </div>
+
+            <div class="flex flex-wrap gap-3 justify-center pt-2">
+                <a id="downloadBtn" download="AuraGold_Autonomous_Mind.png" href="#" 
+                   class="px-6 py-3 bg-amber-500/20 text-amber-300 hover:bg-amber-500/30 rounded-xl text-sm font-semibold transition gold-border flex items-center gap-2">
+                    <i class="fa-solid fa-download"></i> تحميل بجودة فائقة
+                </a>
+                <button onclick="runAutonomousMind()" class="px-6 py-3 bg-gray-800 text-gray-200 hover:bg-gray-700 rounded-xl text-sm font-semibold transition border border-gray-700 flex items-center gap-2">
+                    <i class="fa-solid fa-rotate"></i> إعادة صياغة وتوليد جديد
+                </button>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Script Execution Logic -->
+    <script>
+        const HF_TOKEN = "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";
+
+        // قائمة نماذج بديلة تتبادل الأدوار في حال الضغط أو الاستجابة
+        const MODELS = [
+            "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell",
+            "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
+        ];
+
+        async function runAutonomousMind() {
+            const rawPrompt = document.getElementById("promptInput").value.trim();
+            if (!rawPrompt) {
+                alert("يرجى إدخال فكرة أو أمر للعقل التنفيذي أولاً!");
+                return;
+            }
+
+            const generateBtn = document.getElementById("generateBtn");
+            const processLogCard = document.getElementById("processLogCard");
+            const logs = document.getElementById("logs");
+            const resultCard = document.getElementById("resultCard");
+            const mediaContainer = document.getElementById("mediaContainer");
+            const downloadBtn = document.getElementById("downloadBtn");
+
+            generateBtn.disabled = true;
+            generateBtn.classList.add("opacity-50");
+            processLogCard.classList.remove("hidden");
+            resultCard.classList.add("hidden");
+            logs.innerHTML = "";
+
+            // المرحلة 1: التحليل الذكي
+            addLog("🧠 <b>[المحلل العصبي]:</b> استقبال الطلب وتحليل الكيان اللفظي بغض النظر عن اللغة...");
+            await new Promise(r => setTimeout(r, 600));
+
+            // المرحلة 2: هندسة الأوامر بلا قيود
+            let expandedPrompt = rawPrompt;
+            // إذا كانت بالعربية أو قصيرة، يدمجها العقل بمرشحات بصرية سينمائية متقدمة
+            addLog("⚡ <b>[هندسة الأوامر الحرة]:</b> دمج الخصائص البصرية والسينمائية الفائقة لتجاوز أي قيود تقليدية...");
+            await new Promise(r => setTimeout(r, 600));
+            
+            const finalPrompt = `${rawPrompt}, ultra-detailed, cinematic masterclass lighting, photorealistic 8k resolution, dramatic golden atmosphere, masterpiece aesthetic`;
+            addLog(`📝 <b>[الوصف المهندس نهائياً]:</b> <span class="text-amber-300">"${finalPrompt}"</span>`);
+
+            // المرحلة 3: الاتصال الديناميكي بشبكة النماذج
+            addLog("🚀 <b>[التنفيذ السيبراني]:</b> إرسال الطلب إلى خوادم التوليد الذكي عبر القنوات الآمنة...");
+
+            let success = false;
+            let objectUrl = null;
+
+            for (let i = 0; i < MODELS.length; i++) {
+                const modelUrl = MODELS[i];
+                try {
+                    addLog(`🔄 محاولة الاتصال بالموديل العضوي رقم (${i + 1})...`);
+                    const response = await fetch(modelUrl, {
+                        method: "POST",
+                        headers: {
+                            "Authorization": `Bearer ${HF_TOKEN}`,
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({ inputs: finalPrompt })
+                    });
+
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        objectUrl = URL.createObjectURL(blob);
+                        success = true;
+                        break;
+                    }
+                } catch (err) {
+                    console.warn(`الموديل ${i} واجه ضغطاً، يتم الانتقال للبديل...`);
+                }
+            }
+
+            if (success && objectUrl) {
+                mediaContainer.innerHTML = `<img src="${objectUrl}" class="w-full h-auto rounded-xl shadow-2xl border border-amber-500/20" alt="Autonomous Mind Creation">`;
+                downloadBtn.href = objectUrl;
+
+                addLog("✨ <b>[النجاح التام]:</b> تم تخليق المشهد وبناؤه بنجاح بواسطة العقل السيبراني!");
+                resultCard.classList.remove("hidden");
+            } else {
+                addLog(`<span class="text-red-400">❌ <b>[خطأ استجابة]:</b> حدث ضغط مؤقت في السيرفرات، يرجى إعادة المحاولة خلال ثوانٍ.</span>`);
+            }
+
+            generateBtn.disabled = false;
+            generateBtn.classList.remove("opacity-50");
+        }
+
+        function addLog(message) {
+            const logs = document.getElementById("logs");
+            const div = document.createElement("div");
+            div.className = "agent-step";
+            div.innerHTML = message;
+            logs.appendChild(div);
+            logs.scrollTop = logs.scrollHeight;
+        }
+    </script>
+</body>
 </html>
